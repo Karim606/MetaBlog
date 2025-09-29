@@ -1,0 +1,6 @@
+@MetaBlog.Api_HostAddress = http://localhost:5232
+
+GET {{MetaBlog.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
