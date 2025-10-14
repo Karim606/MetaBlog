@@ -8,13 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
+using MetaBlog.Application.Common.Interfaces;
 
 namespace MetaBlog.Infrastructure.Identity
 {
-    public interface IJwtService
-    {
-        string GenerateToken(string Name,string Email, Guid Id, List<string> Roles);
-    }
+    
 
     public class JwtService(IConfiguration Configuration) : IJwtService
     {
@@ -40,6 +39,24 @@ namespace MetaBlog.Infrastructure.Identity
                 signingCredentials: creds
                 );
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+
+        public (string,DateTime) GenerateRefreshToken()
+        {
+            var randomBytes = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+            var token = Convert.ToBase64String(randomBytes);
+            var expiresAt = DateTime.UtcNow.AddDays(double.Parse(Configuration["JwtSettings:RefreshTokenExpiryDays"]));
+
+           return (token,expiresAt);
+        }
+        public string HashToken(string token)
+        {
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+            return Convert.ToBase64String(hash);
         }
     }
 }

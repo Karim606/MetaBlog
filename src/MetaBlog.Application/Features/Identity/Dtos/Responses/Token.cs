@@ -10,10 +10,15 @@ namespace MetaBlog.Application.Features.Identity.Dto.Responses
     {
         public string AccessToken { get; set; } = string.Empty;
 
-        public Token(string accessToken)
+        public string RefreshToken {  get; set; } = string.Empty;
+        public DateTime RefreshTokenExpiry { get; set; }
+
+        public Token(string accessToken,string refreshToken,DateTime refreshTokenExpiry)
         {
             AccessToken = accessToken;
-           
+            RefreshToken = refreshToken;
+            RefreshTokenExpiry = refreshTokenExpiry;
+
         }
     }
 }

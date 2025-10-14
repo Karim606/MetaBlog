@@ -10,7 +10,9 @@ namespace MetaBlog.Application.Common.Interfaces
     public interface IIdentityService
     {
         Task<Result<object>> ChangePasswordAsync(string Email, string currentPassword, string newPassword);
-        Task<Result<string>> LoginAsync(string Email, string Password);
-        Task<Result<Guid>> RegisterUserAsync(string firstName, string lastName,string Email, string password);
+        Task<Result<(Guid, List<string>)>> LoginAsync(string Email, string Password);
+        Task<Result<Guid>> RegisterUserAsync(string Email, string password);
+        Task<Result<List<String>>>GetUserRolesAsync(Guid Id);
+        Task<Result<string>>GetUserEmailAsync(Guid Id);  
     }
 }

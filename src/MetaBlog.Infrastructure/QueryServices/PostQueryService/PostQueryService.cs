@@ -3,6 +3,7 @@ using MetaBlog.Application.Features.Posts;
 using MetaBlog.Application.Features.Posts.Dtos.Response;
 using MetaBlog.Domain.Common;
 using MetaBlog.Domain.Posts;
+using MetaBlog.Domain.Users;
 using MetaBlog.Infrastructure.Data;
 using MetaBlog.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,22 +21,21 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
         public async Task<PostDto> GetPostByIdAsync(Guid Id,CancellationToken ct)
         {
              var post =await context.Posts.Include(p=> p.Comments).Include(p=>p.User).FirstOrDefaultAsync(p => p.Id == Id,ct);
-            IdentityAppUser user;
             if (post != null)
-         user = await context.IdentityAppUsers.FirstOrDefaultAsync(u => u.Id == post.User.Id,ct);
-            
-            else return null;
-
                 return new PostDto
                 {
-                    Id=post.Id,
+                    Id = post.Id,
                     Title = post.Title,
                     Content = post.Content,
                     CommentsCount = post.Comments.Count(),
                     LikesCount = post.likesCount,
                     Slug = post.Slug,
-                    UserName = user.FirstName+user.LastName
+                    UserName = post.User.lastName +" "+ post.User.lastName
                 };
+
+            else return null;
+
+               
             
         }
 
@@ -49,15 +49,13 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
                 .ApplySorting(sortBy,sortDescending);
            
 
-            var items = await context.Posts.Skip((pageNumber - 1) * pageSize).Take(pageSize)
-                .Join(context.IdentityAppUsers,p => p.User.Id, u => u.Id, (posts, users)=>new { posts,users }).Select(x => new PostDto{
-                        Content = x.posts.Content,
-                        Title = x.posts.Title,
-                        Slug = x.posts.Slug,
-                        CommentsCount = x.posts.Comments.Count(),
-                        LikesCount = x.posts.likesCount,
-
-                    UserName = x.users.FirstName+" "+x.users.LastName
+            var items = await context.Posts.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(p => new PostDto{
+                        Content = p.Content,
+                        Title = p.Title,
+                        Slug = p.Slug,
+                        CommentsCount = p.Comments.Count(),
+                        LikesCount = p.likesCount,
+                    UserName = p.User.firstName+" "+p.User.lastName
                         }).AsNoTracking().ToListAsync(ct);
 
             var totalCount = await context.Posts.CountAsync(ct);

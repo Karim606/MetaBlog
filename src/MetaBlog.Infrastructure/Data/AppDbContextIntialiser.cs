@@ -94,8 +94,6 @@ namespace MetaBlog.Infrastructure.Data
             await AddAppUser(
                 Email: "admin@example.com",
                 Password: "Admin@123456",
-                firstName: "Admin",
-                lastName: "User",
                 phoneNumber: "1234567890",
                 role: "Admin"
             );
@@ -103,19 +101,17 @@ namespace MetaBlog.Infrastructure.Data
             await AddAppUser(
                 Email: "user@example.com",
                 Password:"User@123456",
-                firstName: "Normal",
-                lastName: "User",
                 phoneNumber: "0987654321",
                 role: "User"
             );
 
             // 3. Add domain Users linked to IdentityAppUser
-            await AddDomainUser("admin@example.com", DateOnly.FromDateTime(new DateTime(1980, 1, 1)));
-            await AddDomainUser("user@example.com", DateOnly.FromDateTime(new DateTime(1995, 6, 15)));
+            await AddDomainUser("Admin","User","admin@example.com", DateOnly.FromDateTime(new DateTime(1980, 1, 1)));
+            await AddDomainUser("Normal","User","user@example.com", DateOnly.FromDateTime(new DateTime(1995, 6, 15)));
         }
 
 
-        private async Task AddAppUser(string Email,string Password,string firstName,string lastName,string phoneNumber,string role)
+        private async Task AddAppUser(string Email,string Password,string phoneNumber,string role)
         {
             bool NotExist = userManager.Users.All(u => u.Email != Email)&&Email!=null;
             if (NotExist) {
@@ -126,8 +122,7 @@ namespace MetaBlog.Infrastructure.Data
                     UserName=Email,
                     NormalizedEmail=Email,
                     PhoneNumber=phoneNumber,
-                    FirstName=firstName,
-                    LastName=lastName
+                    
                 };
                 var result  = await userManager.CreateAsync(appUser,Password);
                 if (result.Succeeded) {
@@ -146,7 +141,7 @@ namespace MetaBlog.Infrastructure.Data
 
         }
 
-        private async Task AddDomainUser(string email, DateOnly dob)
+        private async Task AddDomainUser(string firstName,string lastName,string email, DateOnly dob)
         {
             var appUser = await userManager.FindByEmailAsync(email);
             if (appUser == null)
@@ -158,7 +153,7 @@ namespace MetaBlog.Infrastructure.Data
             var exists = await appDbContext.Users.AnyAsync(u => u.Id == appUser.Id);
             if (!exists)
             {
-                var user = User.Create(appUser.Id, dob);
+                var user = User.Create(appUser.Id, dob,firstName,lastName);
                 appDbContext.Users.Add(user);
                 await appDbContext.SaveChangesAsync();
                 Logger.LogInformation("Domain User created for {Email}", email);

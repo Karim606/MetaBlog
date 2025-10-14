@@ -2,7 +2,9 @@
 using MetaBlog.Application.Features.Identity.Dto.Requests;
 using MetaBlog.Application.Features.Identity.Dto.Responses;
 using MetaBlog.Application.Features.Identity.Dtos.Requests;
+using MetaBlog.Application.Features.Identity.Dtos.Responses;
 using MetaBlog.Application.Features.Identity.Login;
+using MetaBlog.Application.Features.Identity.RefreshToken;
 using MetaBlog.Application.Features.Identity.Register;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +37,7 @@ namespace MetaBlog.Api.Controllers
 
         }
         [HttpPost("login")]
-        [ProducesResponseType(typeof(Token), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(Token), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [EndpointSummary("Login.")]
@@ -47,11 +49,53 @@ namespace MetaBlog.Api.Controllers
             // Dummy authentication logic for demonstration purposes
             var command = new LoginCommand(request.Email,request.Password);
             var result = await _sender.Send(command);
+            SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenExpiry);
+
             return result.Match(
-                Success => Ok(result),
+                Success => Ok(result.Value.AccessToken),
                 Problem
             );
         }
+
+
+        [HttpPost("refresh")]
+        [ProducesResponseType(typeof(RefreshTokenResponseDto),StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [EndpointSummary("Refresh your old token.")]
+        [EndpointDescription("Refresh your old token with new one.")]
+        [EndpointName("Refresh Token")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> Refresh()
+        {
+            if (Request.Cookies.TryGetValue("refreshToken", out var incomingValue))
+                return Unauthorized();
+            var result = await _sender.Send(new RefreshTokenCommand(incomingValue));
+            SetRefreshTokenCookie(result.Value.refreshToken, result.Value.expiresAt);
+
+            return result.Match(
+                Success => Ok(result.Value.accessToken),
+                Problem
+                );
+
+        }
+
+
+
+        private void SetRefreshTokenCookie(string refreshToken,DateTime expires)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                Expires = expires,
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path ="api/auth/refresh"
+            };
+            Response.Cookies.Append("refreshToken",refreshToken,cookieOptions);
+        }
+
+        
         //[HttpPost]
         //public IActionResult Logout()
         //{

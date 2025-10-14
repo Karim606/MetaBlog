@@ -4,6 +4,7 @@ using MetaBlog.Domain.Common;
 using MetaBlog.Domain.Favorites;
 using MetaBlog.Domain.Likes;
 using MetaBlog.Domain.Posts;
+using MetaBlog.Domain.RefreshTokens;
 using MetaBlog.Domain.Users;
 using MetaBlog.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -36,6 +37,7 @@ namespace MetaBlog.Infrastructure.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
 
+        public DbSet<RefreshToken>RefreshTokens { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

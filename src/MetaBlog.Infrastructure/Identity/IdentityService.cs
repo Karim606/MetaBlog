@@ -7,21 +7,24 @@ using System.Threading.Tasks;
 using MetaBlog.Domain.Common.Results;
 using MetaBlog.Application.Features.Identity.Dto.Requests;
 using MetaBlog.Application.Common.Interfaces;
+using MetaBlog.Domain.RepositoriesInterfaces;
+using MetaBlog.Domain.RefreshTokens;
 namespace MetaBlog.Infrastructure.Identity
 {
     
 
-    public class IdentityService(UserManager<IdentityAppUser> userManager,IJwtService jwtService) : IIdentityService
+    public class IdentityService(UserManager<IdentityAppUser> userManager,IJwtService jwtService,IRefreshTokenRepository refreshTokenRepository) 
+        : IIdentityService
+
     {
-        public async Task<Result<Guid>> RegisterUserAsync(string firstName,string lastName, string Email, string password)
+        public async Task<Result<Guid>> RegisterUserAsync( string Email, string password)
         {
             var user = await userManager.FindByEmailAsync(Email);
             if (user == null)
             {
                 var newUser = new IdentityAppUser
                 {
-                    FirstName = firstName,
-                    LastName = lastName,
+
                     UserName = Email,
                     Email = Email
                 };
@@ -39,7 +42,7 @@ namespace MetaBlog.Infrastructure.Identity
 
         }
 
-        public async Task<Result<string>> LoginAsync(string Email, string Password)
+        public async Task<Result<(Guid,List<string>)>> LoginAsync(string Email, string Password)
         {
             var user = await userManager.FindByEmailAsync(Email);
             if (user == null)
@@ -50,7 +53,8 @@ namespace MetaBlog.Infrastructure.Identity
             {
                 return Error.Unauthorized("Invalid password");
             }
-            return jwtService.GenerateToken($"{user.FirstName} {user.LastName}",user.Email!, user.Id, (await userManager.GetRolesAsync(user)).ToList());
+             var list = await userManager.GetRolesAsync(user);
+            return (user.Id,list.ToList());
         }
 
         public async Task<Result<object>> ChangePasswordAsync(string Email, string currentPassword, string newPassword)
@@ -68,7 +72,25 @@ namespace MetaBlog.Infrastructure.Identity
             return errors;
         }
 
+        public async Task<Result<List<string>>> GetUserRolesAsync(Guid Id)
+        {
+            var user = await userManager.FindByIdAsync(Id.ToString());
+            if (user == null)
+                return Error.NotFound("User not found");
+            var list = await userManager.GetRolesAsync(user);
+            return list.ToList();
+       
+        }
 
+        public async Task<Result<string>> GetUserEmailAsync(Guid Id)
+        {
+           var user= await userManager.FindByIdAsync(Id.ToString());
+            if (user == null)
+                return Error.NotFound("User not found");
+            
+            return user.Email!;
+
+        }
     }
 
 }

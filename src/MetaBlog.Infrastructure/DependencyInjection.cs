@@ -104,6 +104,7 @@ namespace MetaBlog.Extensions.DependencyInjection
             Services.AddScoped<ILikeRepository, LikeRepository>(); 
             Services.AddScoped<IFavoriteRepository,FavoriteRepository>();
             Services.AddScoped<IDomainUserRepository, DomainUserRepository>();
+            Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             return Services;
         }
         public static IServiceCollection AddQueryServices(this IServiceCollection Services)

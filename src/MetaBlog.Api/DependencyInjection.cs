@@ -155,6 +155,7 @@ namespace MetaBlog.Api
         {
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<ICurrentRequestContext, CurrentRequestContext>();
             return services;
         }
 
