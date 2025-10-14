@@ -42,7 +42,7 @@ namespace MetaBlog.Domain.RefreshTokens
         
         }
 
-        public void Revoke(Guid newRefreshTokenId,RevokeReasons reason)
+        public void Revoke(Guid? newRefreshTokenId,RevokeReasons reason)
         {
            revokedAt = DateTime.Now;
            replacedByTokenId = newRefreshTokenId;

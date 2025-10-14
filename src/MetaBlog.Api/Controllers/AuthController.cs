@@ -4,10 +4,13 @@ using MetaBlog.Application.Features.Identity.Dto.Responses;
 using MetaBlog.Application.Features.Identity.Dtos.Requests;
 using MetaBlog.Application.Features.Identity.Dtos.Responses;
 using MetaBlog.Application.Features.Identity.Login;
+using MetaBlog.Application.Features.Identity.Logout;
 using MetaBlog.Application.Features.Identity.RefreshToken;
 using MetaBlog.Application.Features.Identity.Register;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace MetaBlog.Api.Controllers
 {
@@ -68,7 +71,7 @@ namespace MetaBlog.Api.Controllers
         [MapToApiVersion("1.0")]
         public async Task<IActionResult> Refresh()
         {
-            if (Request.Cookies.TryGetValue("refreshToken", out var incomingValue))
+            if (!Request.Cookies.TryGetValue("refreshToken", out var incomingValue))
                 return Unauthorized();
             var result = await _sender.Send(new RefreshTokenCommand(incomingValue));
             SetRefreshTokenCookie(result.Value.refreshToken, result.Value.expiresAt);
@@ -95,13 +98,25 @@ namespace MetaBlog.Api.Controllers
             Response.Cookies.Append("refreshToken",refreshToken,cookieOptions);
         }
 
-        
-        //[HttpPost]
-        //public IActionResult Logout()
-        //{
-        //    // Dummy logout logic for demonstration purposes
-        //    return Ok(new { Message = "User logged out successfully." });
-        //}
+        [Authorize]
+        [HttpPost("logout")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status500InternalServerError)]
+        [EndpointSummary("logout")]
+        [EndpointName("logout")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> Logout()
+        {
+            Request.Cookies.TryGetValue("refreshToken", out var refreshToken);
+            var command = new LogOutCommand(refreshToken);
+            SetRefreshTokenCookie("",DateTime.MinValue);
+            var result = await _sender.Send(command);
+            return result.Match(
+                Success => NoContent(),
+                Problem
+                );
+        }
         //[HttpPost]
         //public IActionResult ForgotPassword() { return Ok(new { Message = "Password reset link sent." }); }
 
