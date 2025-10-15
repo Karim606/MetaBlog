@@ -22,6 +22,8 @@ using MetaBlog.Application.Features.Comments;
 using MetaBlog.Infrastructure.QueryServices.CommentQueryService;
 using MetaBlog.Application.Features.Favorites;
 using MetaBlog.Infrastructure.QueryServices.FavoriteQueryService;
+using MetaBlog.Infrastructure.Interfaces;
+using MetaBlog.Infrastructure.Services;
 namespace MetaBlog.Extensions.DependencyInjection
 {
     public static class DependencyInjection
@@ -32,6 +34,7 @@ namespace MetaBlog.Extensions.DependencyInjection
 
             Services.AddDbContext(Configuration)
                    .AddJwtService(Configuration)
+                   .AddServices()
                    .AddRepositories()
                    .AddQueryServices()
                    .AddHybridCache();
@@ -54,6 +57,9 @@ namespace MetaBlog.Extensions.DependencyInjection
                 options.SignIn.RequireConfirmedPhoneNumber = false;
                 options.SignIn.RequireConfirmedAccount = false;
             }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+
+            Services.AddScoped<DbIntialiser>();
+
             return Services;
         }
         
@@ -93,7 +99,13 @@ namespace MetaBlog.Extensions.DependencyInjection
             });
             #endregion
             Services.AddScoped<IJwtService, JwtService>();
-            Services.AddScoped<DbIntialiser>();
+            return Services;
+        }
+
+        private static IServiceCollection AddServices(this IServiceCollection Services)
+        {
+
+            Services.AddScoped<IEmailService, SmtpEmailService>();
             return Services;
         }
 

@@ -9,11 +9,15 @@ using MetaBlog.Application.Features.Identity.Dto.Requests;
 using MetaBlog.Application.Common.Interfaces;
 using MetaBlog.Domain.RepositoriesInterfaces;
 using MetaBlog.Domain.RefreshTokens;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
+using MetaBlog.Infrastructure.Interfaces;
 namespace MetaBlog.Infrastructure.Identity
 {
     
 
-    public class IdentityService(UserManager<IdentityAppUser> userManager,IJwtService jwtService,IRefreshTokenRepository refreshTokenRepository) 
+    public class IdentityService(UserManager<IdentityAppUser> userManager,IJwtService jwtService,IConfiguration Configuration
+        ,IRefreshTokenRepository refreshTokenRepository,IEmailService emailService) 
         : IIdentityService
 
     {
@@ -71,6 +75,22 @@ namespace MetaBlog.Infrastructure.Identity
             var errors = result.Errors.Select(e => Error.Failure(e.Code, e.Description)).ToList();
             return errors;
         }
+
+
+        public async Task<Result<Success>> RequestResetPasswordAsync(string Email)
+        {
+           var user = await userManager.FindByEmailAsync(Email);
+            if (user == null)
+                return Error.NotFound();
+
+           var token = await userManager.GeneratePasswordResetTokenAsync(user);
+           var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+            var resetLink = $"{Configuration["ClientSettings:ClientDomain"]}/reset-password?token={encodedToken}&email={user.Email}";
+            var result = await emailService.SendAsync(Email, "Reset-Password", $"Click here to reset your password: {resetLink} .");
+            return result;
+        }
+
 
         public async Task<Result<List<string>>> GetUserRolesAsync(Guid Id)
         {

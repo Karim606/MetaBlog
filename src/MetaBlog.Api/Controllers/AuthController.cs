@@ -3,6 +3,7 @@ using MetaBlog.Application.Features.Identity.Dto.Requests;
 using MetaBlog.Application.Features.Identity.Dto.Responses;
 using MetaBlog.Application.Features.Identity.Dtos.Requests;
 using MetaBlog.Application.Features.Identity.Dtos.Responses;
+using MetaBlog.Application.Features.Identity.ForgotPassword;
 using MetaBlog.Application.Features.Identity.Login;
 using MetaBlog.Application.Features.Identity.Logout;
 using MetaBlog.Application.Features.Identity.RefreshToken;
@@ -117,8 +118,14 @@ namespace MetaBlog.Api.Controllers
                 Problem
                 );
         }
-        //[HttpPost]
-        //public IActionResult ForgotPassword() { return Ok(new { Message = "Password reset link sent." }); }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] string Email) {
+
+            var result = await _sender.Send(new ForgotPasswordCommand(Email));
+           return result.Match(
+                Success => Ok(),
+                Problem);
+             }
 
     }
 }
