@@ -3,6 +3,7 @@ using MetaBlog.Api.Common.RouteConstraints;
 using MetaBlog.Api.Infrastructure;
 using MetaBlog.Api.OpenApi.Transformers;
 using MetaBlog.Application.Common.Interfaces;
+using MetaBlog.Infrastructure.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
@@ -21,7 +22,8 @@ namespace MetaBlog.Api
         {
             // Add services to the container.
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            services.AddEndpointsApiExplorer()
+            services.AddConfigurations(configuration)
+                .AddEndpointsApiExplorer()
                 .AddRouteContraints()
                 .AddCustomProblemDetails()
                 .AddCustomApiVersioning()
@@ -32,6 +34,20 @@ namespace MetaBlog.Api
                 .AddAppRateLimiting()
                 .AddOutputCaching();
               
+
+            return services;
+        }
+
+        public static IServiceCollection AddConfigurations(this IServiceCollection services , IConfiguration configuration)
+        {
+                services.Configure<EmailSettings>(
+                configuration.GetSection("EmailSettings"));
+            var emails = configuration.GetSection("EmailSettings").Get<EmailSettings>();
+            Console.WriteLine($" here : {emails.SmtpPort}");
+
+            configuration["ConnectionStrings:Default"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+            configuration["JwtSettings:SecretKey"] = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
+            configuration["Serilog:WriteTo:1:Args:serverUrl"] = Environment.GetEnvironmentVariable("SEQ_URL");
 
             return services;
         }

@@ -119,10 +119,16 @@ namespace MetaBlog.Api.Controllers
                 );
         }
         [HttpPost("forgot-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status500InternalServerError)]
+        [EndpointSummary("Forgot Password")]
+        [EndpointDescription("send request to reset password by email.")]
+        [EndpointName("Forgot-Password")]
         public async Task<IActionResult> ForgotPassword([FromBody] string Email) {
 
             var result = await _sender.Send(new ForgotPasswordCommand(Email));
-           return result.Match(
+            return result.Match(
                 Success => Ok(),
                 Problem);
              }

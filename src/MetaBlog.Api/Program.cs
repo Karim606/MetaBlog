@@ -1,4 +1,5 @@
 
+using DotNetEnv;
 using MetaBlog.Application;
 using MetaBlog.Extensions.DependencyInjection;
 using MetaBlog.Infrastructure.Data;
@@ -13,6 +14,10 @@ namespace MetaBlog.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            Env.Load($"../../.env.{envName.ToLower()}");
+
+            builder.Configuration.AddEnvironmentVariables();
             // Add services to the container.
 
             builder.Services.AddPresentation(builder.Configuration)
