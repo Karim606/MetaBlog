@@ -44,6 +44,7 @@ namespace MetaBlog.Api
             {
                 app.UseHsts();
             }
+     
             app.UseCoreMiddlewares(builder.Configuration);
             app.MapControllers();
             app.UseAntiforgery();

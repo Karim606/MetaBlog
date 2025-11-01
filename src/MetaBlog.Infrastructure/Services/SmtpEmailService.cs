@@ -1,5 +1,5 @@
 ﻿using MetaBlog.Domain.Common.Results;
-using MetaBlog.Infrastructure.Interfaces;
+using MetaBlog.Infrastructure.Common.Interfaces;
 using MetaBlog.Infrastructure.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

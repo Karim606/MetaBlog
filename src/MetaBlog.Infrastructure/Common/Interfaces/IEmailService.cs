@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MetaBlog.Infrastructure.Interfaces
+namespace MetaBlog.Infrastructure.Common.Interfaces
 {
     public interface IEmailService
     {

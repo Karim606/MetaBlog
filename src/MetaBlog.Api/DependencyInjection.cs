@@ -32,8 +32,8 @@ namespace MetaBlog.Api
                 .AddControllersWithJsonConfiguration()
                 .AddIdentityInfrastructure()
                 .AddAppRateLimiting()
-                .AddOutputCaching();
-              
+                .AddOutputCaching()
+                .AddCors();
 
             return services;
         }
@@ -175,8 +175,26 @@ namespace MetaBlog.Api
             return services;
         }
 
+
+        public static IServiceCollection AddCors(this IServiceCollection services)
+        {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigins", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+                });
+            });
+            return services;
+        }
+
         public static IApplicationBuilder UseCoreMiddlewares(this IApplicationBuilder app,IConfiguration configuration)
         {
+            app.UseCors("AllowSpecificOrigins");
+
             app.UseExceptionHandler();
 
             app.UseStatusCodePages();

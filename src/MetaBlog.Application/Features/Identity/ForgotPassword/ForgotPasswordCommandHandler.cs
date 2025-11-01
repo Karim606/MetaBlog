@@ -16,7 +16,13 @@ namespace MetaBlog.Application.Features.Identity.ForgotPassword
         public async Task<Result<Success>> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
         {
             var result = await identityService.RequestResetPasswordAsync(request.Email);
+            if(result.IsSuccess)
             return result;
+            else
+            {
+                logger.LogWarning("request to reset password for email: {email} has been failed error:{error}", request.Email, result.TopError);
+                return Error.Conflict(description: "something went wrong");
+            }
         }
 
     }

@@ -38,8 +38,8 @@ namespace MetaBlog.Domain.Users
         public IEnumerable<Favorite> Favorites => _Favorites.AsReadOnly();
 
         
-        private readonly List<RefreshToken> _Tokens = new List<RefreshToken>();
-        public IEnumerable<RefreshToken>refreshTokens => _Tokens.AsReadOnly();
+        private readonly List<RefreshToken> _refreshTokens = new List<RefreshToken>();
+        public IEnumerable<RefreshToken>refreshTokens => _refreshTokens.AsReadOnly();
 
         private User() { }
         private User(Guid id,DateOnly dob,string firstName,string lastName):base(id)

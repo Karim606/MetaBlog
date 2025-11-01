@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MetaBlog.Application.Features.Identity.Register
 {
-    public record RegisterCommand(string firstName,string lastName, string Email,[property:SensitiveData] string Password,DateOnly Dob)
+    public record RegisterCommand(string firstName,string lastName, string Email,[property:SensitiveData] string Password, [property: SensitiveData] string confirmPassword,DateOnly Dob)
         :IRequest<Result<Created>>; 
 
 }

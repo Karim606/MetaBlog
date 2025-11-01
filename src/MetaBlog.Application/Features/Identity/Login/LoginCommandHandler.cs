@@ -40,7 +40,7 @@ namespace MetaBlog.Application.Features.Identity.Login
             else
             {
                 logger.LogWarning("Failed login attempt for user {Email}. Reason: {Reason}", request.Email, result.TopError.ToLogObject());
-                return result.Errors!;
+                return Error.Unauthorized(description:"Invalid email Address or password.");
             }
         }
     }

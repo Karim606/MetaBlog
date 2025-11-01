@@ -11,7 +11,7 @@ using MetaBlog.Domain.RepositoriesInterfaces;
 using MetaBlog.Domain.RefreshTokens;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
-using MetaBlog.Infrastructure.Interfaces;
+using MetaBlog.Infrastructure.Common.Interfaces;
 namespace MetaBlog.Infrastructure.Identity
 {
     
@@ -42,7 +42,7 @@ namespace MetaBlog.Infrastructure.Identity
                 
             }
 
-            return Error.Conflict("Email exist");
+            return Error.Conflict(description:"Email already exists");
 
         }
 
@@ -91,7 +91,19 @@ namespace MetaBlog.Infrastructure.Identity
             return result;
         }
 
+        public async Task<Result<Success>> ResetPasswordAsync(string Email,string Token, string newPassword)
+        {
+            var user = await userManager.FindByEmailAsync(Email);
+            if(user==null)
+                return Error.NotFound();
 
+            var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Token));
+
+            var result = await userManager.ResetPasswordAsync(user,decodedToken,newPassword);
+
+            if (result.Succeeded) return Result.Success;
+            else return Error.Failure();
+        }
         public async Task<Result<List<string>>> GetUserRolesAsync(Guid Id)
         {
             var user = await userManager.FindByIdAsync(Id.ToString());

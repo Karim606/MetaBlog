@@ -8,6 +8,7 @@ using MetaBlog.Application.Features.Identity.Login;
 using MetaBlog.Application.Features.Identity.Logout;
 using MetaBlog.Application.Features.Identity.RefreshToken;
 using MetaBlog.Application.Features.Identity.Register;
+using MetaBlog.Application.Features.Identity.ResetPassword;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,23 +16,24 @@ using System.Threading.Tasks;
 
 namespace MetaBlog.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     
     public class AuthController(ISender sender) : ApiController
     {
         private readonly ISender _sender = sender;
 
-        [HttpPost]
+        [HttpPost("register")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [EndpointSummary("Registers New User.")]
         [EndpointDescription("Register New user to System.")]
         [EndpointName("Register")]
         [MapToApiVersion("1.0")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDto request)
         {
-            var command = new RegisterCommand(request.firstName, request.lastName, request.Email, request.Password,request.Dob);
+            var command = new RegisterCommand(request.firstName, request.lastName, request.Email, request.Password,request.confirmPassword,request.Dob);
             
             var result = await _sender.Send(command);
             return result.Match(
@@ -53,12 +55,15 @@ namespace MetaBlog.Api.Controllers
             // Dummy authentication logic for demonstration purposes
             var command = new LoginCommand(request.Email,request.Password);
             var result = await _sender.Send(command);
+            if(result.IsSuccess)
             SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenExpiry);
 
             return result.Match(
-                Success => Ok(result.Value.AccessToken),
+                Success => Ok(new { accessToken = result.Value.AccessToken}),
                 Problem
-            );
+                );
+
+
         }
 
 
@@ -125,13 +130,32 @@ namespace MetaBlog.Api.Controllers
         [EndpointSummary("Forgot Password")]
         [EndpointDescription("send request to reset password by email.")]
         [EndpointName("Forgot-Password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] string Email) {
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgetPasswordDto model) {
 
-            var result = await _sender.Send(new ForgotPasswordCommand(Email));
+            var result = await _sender.Send(new ForgotPasswordCommand(model.Email));
             return result.Match(
                 Success => Ok(),
                 Problem);
              }
+
+        [HttpPost("reset-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [EndpointSummary("reset your password")]
+        [EndpointDescription("reset your password by sending new one with token ")]
+        [EndpointName("reset-password")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+        {
+            var result = await _sender.Send(new ResetPasswordCommand(model));
+
+           return result.Match(
+                Success => Ok(),
+                Problem
+                );
+        }
 
     }
 }

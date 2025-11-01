@@ -22,8 +22,8 @@ using MetaBlog.Application.Features.Comments;
 using MetaBlog.Infrastructure.QueryServices.CommentQueryService;
 using MetaBlog.Application.Features.Favorites;
 using MetaBlog.Infrastructure.QueryServices.FavoriteQueryService;
-using MetaBlog.Infrastructure.Interfaces;
 using MetaBlog.Infrastructure.Services;
+using MetaBlog.Infrastructure.Common.Interfaces;
 namespace MetaBlog.Extensions.DependencyInjection
 {
     public static class DependencyInjection

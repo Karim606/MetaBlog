@@ -21,13 +21,13 @@ namespace MetaBlog.Infrastructure.Identity
         {
             var claims = new List<System.Security.Claims.Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier,Id.ToString() ),
-                new Claim(ClaimTypes.Email,Email),
-                new Claim(ClaimTypes.Name,Name)
+                new Claim("id",Id.ToString() ),
+                new Claim("email",Email),
+                new Claim("name",Name)
             };
             foreach (var role in Roles)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim("role", role));
             }
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSettings:SecretKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

@@ -14,6 +14,8 @@ namespace MetaBlog.Application.Common.Interfaces
         Task<Result<Guid>> RegisterUserAsync(string Email, string password);
         Task<Result<List<String>>>GetUserRolesAsync(Guid Id);
         Task<Result<string>>GetUserEmailAsync(Guid Id);
+
+        Task<Result<Success>> ResetPasswordAsync(string Email, string Token, string newPassword);
         Task<Result<Success>> RequestResetPasswordAsync(string Email);
     }
 }
