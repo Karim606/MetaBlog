@@ -18,7 +18,7 @@ namespace MetaBlog.Api.Controllers
 {
     [Route("api/auth")]
     
-    public class AuthController(ISender sender) : ApiController
+    public class AuthController(ISender sender,IConfiguration configuration) : ApiController
     {
         private readonly ISender _sender = sender;
 
@@ -99,7 +99,7 @@ namespace MetaBlog.Api.Controllers
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Path ="api/auth/refresh"
+                Path ="/",
             };
             Response.Cookies.Append("refreshToken",refreshToken,cookieOptions);
         }

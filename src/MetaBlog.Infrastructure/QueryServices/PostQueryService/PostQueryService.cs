@@ -20,7 +20,7 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
     {
         public async Task<PostDto> GetPostByIdAsync(Guid Id,CancellationToken ct)
         {
-             var post =await context.Posts.Include(p=> p.Comments).Include(p=>p.User).FirstOrDefaultAsync(p => p.Id == Id,ct);
+             var post =await context.Posts.FirstOrDefaultAsync(p => p.Id == Id,ct);
             if (post != null)
                 return new PostDto
                 {
@@ -39,7 +39,7 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
             
         }
 
-        public async Task<PaginatedList<PostDto>> GetPostsAsync(int pageNumber, int pageSize, string? searchTerm, Guid? authorId, DateTime? createdAfter, string? sortBy, bool? sortDescending, CancellationToken ct)
+        public async Task<PaginatedList<PostDto>> GetPostsAsync(int pageNumber, int pageSize, string? searchTerm, Guid? authorId, DateTime? createdAfter, string? sortBy, bool? sortDescending,Guid? currentUserId, CancellationToken ct)
         {
             var query = context.Posts.AsQueryable();
 
@@ -47,18 +47,35 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
                 .ApplyFilterWithAuthorId(authorId)
                 .ApplyFilterWithCreatedAfter(createdAfter)
                 .ApplySorting(sortBy,sortDescending);
-           
-
-            var items = await context.Posts.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(p => new PostDto{
-                        Content = p.Content,
-                        Title = p.Title,
-                        Slug = p.Slug,
-                        CommentsCount = p.Comments.Count(),
-                        LikesCount = p.likesCount,
-                    UserName = p.User.firstName+" "+p.User.lastName
-                        }).AsNoTracking().ToListAsync(ct);
 
             var totalCount = await context.Posts.CountAsync(ct);
+
+            var pagedPosts =  query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+
+            var items = from p in pagedPosts join
+                        l in context.Likes.Where(l => l.userId == currentUserId)
+                        on p.Id equals l.TargetId into likesGroup
+                        from likes in likesGroup.DefaultIfEmpty()
+                        join f in context.Favorites.Where(f => f.userId == currentUserId)
+                        on p.Id equals f.postId into favoritesGroup
+                        from favorites in favoritesGroup.DefaultIfEmpty()
+
+                        select new PostDto
+                        {
+                            Id = p.Id,
+                            Content = p.Content,
+                            Title = p.Title,
+                            Slug = p.Slug,
+                            CommentsCount = p.Comments.Count(),
+                            LikesCount = p.likesCount,
+                            IsLikedByCurrentUser = likes != null,
+                            IsFavoritedByCurrentUser = favorites != null,
+                            UserName = p.User.firstName + " " + p.User.lastName
+                        };
+            
+            var finalItems = await items.AsNoTracking().ToListAsync(ct);
+
+            
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
             return new PaginatedList<PostDto> {
@@ -66,7 +83,7 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
             TotalPages = totalPages,
             PageNumber = pageNumber,
             PageSize = pageSize,
-            Items = items
+            Items = finalItems
             };
         }
 

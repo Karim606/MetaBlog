@@ -11,7 +11,7 @@ namespace MetaBlog.Application.Features.Identity.ResetPassword
     {
         public ResetPasswordCommandValidator()
         {
-            RuleFor(c => c.model.Email)
+            RuleFor(c => c.model.email)
             .NotEmpty().WithMessage("Email cannot be empty or whitespace.")
             .EmailAddress().WithMessage("Invalid email format.");
 
@@ -22,11 +22,8 @@ namespace MetaBlog.Application.Features.Identity.ResetPassword
                 .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter.")
                 .Matches("[0-9]").WithMessage("Password must contain at least one number.");
 
-            RuleFor(c => c.model.confirmNewPassword)
-                .Equal(c => c.model.newPassword)
-                .WithMessage("Passwords do not match.");
 
-            RuleFor(c => c.model.Token)
+            RuleFor(c => c.model.token)
                 .NotEmpty().WithMessage("Token cannot be empty or whitespace.");
 
         }

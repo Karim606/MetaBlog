@@ -24,6 +24,8 @@ using MetaBlog.Application.Features.Favorites;
 using MetaBlog.Infrastructure.QueryServices.FavoriteQueryService;
 using MetaBlog.Infrastructure.Services;
 using MetaBlog.Infrastructure.Common.Interfaces;
+using MetaBlog.Infrastructure.QueryServices.FollowQueryService;
+using MetaBlog.Application.Features.Follow;
 namespace MetaBlog.Extensions.DependencyInjection
 {
     public static class DependencyInjection
@@ -117,6 +119,7 @@ namespace MetaBlog.Extensions.DependencyInjection
             Services.AddScoped<IFavoriteRepository,FavoriteRepository>();
             Services.AddScoped<IDomainUserRepository, DomainUserRepository>();
             Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            Services.AddScoped<IFollowRepository, FollowRepository>();
             return Services;
         }
         public static IServiceCollection AddQueryServices(this IServiceCollection Services)
@@ -124,6 +127,7 @@ namespace MetaBlog.Extensions.DependencyInjection
             Services.AddScoped<IPostQueryService, PostQueryService>();
             Services.AddScoped<ICommentQueryService, CommentQueryService>();
             Services.AddScoped<IFavoriteQueryService, FavoriteQueryService>();
+            Services.AddScoped<IFollowQueryService, FollowQueryService>();
             return Services;
         }
     }

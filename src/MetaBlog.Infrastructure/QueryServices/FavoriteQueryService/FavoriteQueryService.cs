@@ -20,7 +20,9 @@ namespace MetaBlog.Infrastructure.QueryServices.FavoriteQueryService
                         {
                             PostId = f.postId,
                             Id = f.Id,
-                            Title = f.post.Title
+                            Title = f.post.Title,
+                            AuthorName = f.post.User.firstName + f.post.User.lastName,
+                            Content=f.post.Content,
                         }).ToListAsync(ct);
             var totalCount = await context.Favorites.CountAsync(ct);
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);

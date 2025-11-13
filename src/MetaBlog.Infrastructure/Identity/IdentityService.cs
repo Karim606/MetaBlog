@@ -86,7 +86,7 @@ namespace MetaBlog.Infrastructure.Identity
            var token = await userManager.GeneratePasswordResetTokenAsync(user);
            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-            var resetLink = $"{Configuration["ClientSettings:ClientDomain"]}/reset-password?token={encodedToken}&email={user.Email}";
+            var resetLink = $"{Configuration["ClientSetting:ClientDomain"]}/auth/reset-password?token={encodedToken}&email={user.Email}";
             var result = await emailService.SendAsync(Email, "Reset-Password", $"Click here to reset your password: {resetLink} .");
             return result;
         }

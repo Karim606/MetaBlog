@@ -19,9 +19,9 @@ namespace MetaBlog.Application.Features.Posts.Dtos.Response
         public string  UserName { get;  set; }
         public int LikesCount { get;  set; }
         public int CommentsCount { get;  set; }
-        
+        public bool IsLikedByCurrentUser { get; set; }
 
-
+        public bool IsFavoritedByCurrentUser { get; set; }
 
 
     }

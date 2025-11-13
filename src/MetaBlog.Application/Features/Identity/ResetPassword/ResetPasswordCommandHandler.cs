@@ -18,16 +18,16 @@ namespace MetaBlog.Application.Features.Identity.ResetPassword
     {
         public async Task<Result<Success>> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
-            var result = await identityService.ResetPasswordAsync(request.model.Email, request.model.Token, request.model.newPassword);
+            var result = await identityService.ResetPasswordAsync(request.model.email, request.model.token, request.model.newPassword);
 
             if (result.IsSuccess)
             {
-                logger.LogInformation("User with email {Email} reset their password successfully.", request.model.Email);
+                logger.LogInformation("User with email {Email} reset their password successfully.", request.model.email);
             }
             else
             {
                 logger.LogWarning("User with email {Email} failed to reset their password. Reason: {Reason}",
-                    request.model.Email, result.TopError);
+                    request.model.email, result.TopError);
             }
             return result;
         }

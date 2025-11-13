@@ -1,6 +1,7 @@
 ﻿using MetaBlog.Domain.Comments;
 using MetaBlog.Domain.Common;
 using MetaBlog.Domain.Favorites;
+using MetaBlog.Domain.Follows;
 using MetaBlog.Domain.Likes;
 using MetaBlog.Domain.Posts;
 using MetaBlog.Domain.RefreshTokens;
@@ -40,6 +41,14 @@ namespace MetaBlog.Domain.Users
         
         private readonly List<RefreshToken> _refreshTokens = new List<RefreshToken>();
         public IEnumerable<RefreshToken>refreshTokens => _refreshTokens.AsReadOnly();
+
+
+        private readonly List<Follow> _Followers = new List<Follow>();
+        public IEnumerable<Follow> Followers => _Followers.AsReadOnly();
+
+
+        private readonly List<Follow> _Following = new List<Follow>();
+        public IEnumerable<Follow> Following => _Following.AsReadOnly();
 
         private User() { }
         private User(Guid id,DateOnly dob,string firstName,string lastName):base(id)

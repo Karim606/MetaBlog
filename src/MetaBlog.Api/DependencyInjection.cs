@@ -43,7 +43,6 @@ namespace MetaBlog.Api
                 services.Configure<EmailSettings>(
                 configuration.GetSection("EmailSettings"));
             var emails = configuration.GetSection("EmailSettings").Get<EmailSettings>();
-            Console.WriteLine($" here : {emails.SmtpPort}");
 
             configuration["ConnectionStrings:Default"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
             configuration["JwtSettings:SecretKey"] = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
@@ -182,7 +181,7 @@ namespace MetaBlog.Api
             {
                 options.AddPolicy("AllowSpecificOrigins", policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200")
+                    policy.WithOrigins("https://localhost:4200")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();
