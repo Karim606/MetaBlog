@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using MetaBlog.Api.OpenApi;
 using MetaBlog.Application.Features.Identity.Dto.Requests;
 using MetaBlog.Application.Features.Identity.Dto.Responses;
 using MetaBlog.Application.Features.Identity.Dtos.Requests;
@@ -9,6 +10,7 @@ using MetaBlog.Application.Features.Identity.Logout;
 using MetaBlog.Application.Features.Identity.RefreshToken;
 using MetaBlog.Application.Features.Identity.Register;
 using MetaBlog.Application.Features.Identity.ResetPassword;
+using MetaBlog.Domain.RefreshTokens;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +25,7 @@ namespace MetaBlog.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpPost("register")]
-        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -37,13 +39,14 @@ namespace MetaBlog.Api.Controllers
             
             var result = await _sender.Send(command);
             return result.Match(
-                Created => Ok(result),
+                Created => Ok(),
                 Problem
             );
 
         }
         [HttpPost("login")]
-        [ProducesResponseType(typeof(Token), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AccessToken), StatusCodes.Status200OK)]
+        [ReturnsCookie("refreshToken",200,bodyType: typeof(AccessToken))]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [EndpointSummary("Login.")]
@@ -57,9 +60,9 @@ namespace MetaBlog.Api.Controllers
             var result = await _sender.Send(command);
             if(result.IsSuccess)
             SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenExpiry);
-
+            
             return result.Match(
-                Success => Ok(new { accessToken = result.Value.AccessToken}),
+                token => Ok(token.AccessToken),
                 Problem
                 );
 

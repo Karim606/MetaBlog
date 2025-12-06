@@ -26,6 +26,8 @@ using MetaBlog.Infrastructure.Services;
 using MetaBlog.Infrastructure.Common.Interfaces;
 using MetaBlog.Infrastructure.QueryServices.FollowQueryService;
 using MetaBlog.Application.Features.Follow;
+using MetaBlog.Application.Features.Likes;
+using MetaBlog.Infrastructure.QueryServices.LikesQueryServer;
 namespace MetaBlog.Extensions.DependencyInjection
 {
     public static class DependencyInjection
@@ -128,6 +130,7 @@ namespace MetaBlog.Extensions.DependencyInjection
             Services.AddScoped<ICommentQueryService, CommentQueryService>();
             Services.AddScoped<IFavoriteQueryService, FavoriteQueryService>();
             Services.AddScoped<IFollowQueryService, FollowQueryService>();
+            Services.AddScoped<ILikeQueryService, LikesQueryService>();
             return Services;
         }
     }

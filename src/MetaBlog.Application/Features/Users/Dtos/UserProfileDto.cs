@@ -12,5 +12,8 @@ namespace MetaBlog.Application.Features.Users.Dtos
         public string imageUrl { get; set; } = string.Empty;
         public string bio { get; set; } = string.Empty;
         public string userName { get; set; } = string.Empty;
+        public int totalFollowers { get; set; }
+        public bool? followed { get; set; }
+        public int totalFollowed { get; set; }
     }
 }

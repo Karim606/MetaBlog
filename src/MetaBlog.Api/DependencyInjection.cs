@@ -1,6 +1,7 @@
 ﻿using MetaBlog.Api.Common;
 using MetaBlog.Api.Common.RouteConstraints;
 using MetaBlog.Api.Infrastructure;
+using MetaBlog.Api.OpenApi;
 using MetaBlog.Api.OpenApi.Transformers;
 using MetaBlog.Application.Common.Interfaces;
 using MetaBlog.Infrastructure.Settings;
@@ -139,6 +140,8 @@ namespace MetaBlog.Api
                     options.AddDocumentTransformer<VersionInfoTransformer>();
                     options.AddDocumentTransformer<BearerSchemeSecurityTransformer>();
                     options.AddOperationTransformer<BearerSchemeSecurityTransformer>();
+                    options.AddOperationTransformer<CookieOperationTransformer>();
+
                     //options.AddSchemaTransformer<EnumSchemaTransformer>();
 
                 });
@@ -182,6 +185,11 @@ namespace MetaBlog.Api
                 options.AddPolicy("AllowSpecificOrigins", policy =>
                 {
                     policy.WithOrigins("https://localhost:4200")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+
+                    policy.WithOrigins("http://localhost:4200")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

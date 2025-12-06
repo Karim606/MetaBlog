@@ -54,5 +54,19 @@ namespace MetaBlog.Infrastructure.QueryServices.FollowQueryService
                 Items = list
             };
         }
+
+        public async Task<(int totalFollowers, int totalFollowed)> GetTotalNumberAsync(Guid id,CancellationToken ct)
+        {
+            var totalNumOfFollowed = await context.Follows.Where(f => f.FollowerId == id).CountAsync(ct);
+            var totalNumOfFollowers = await context.Follows.Where(f => f.FollowedId == id).CountAsync(ct);
+            return (totalNumOfFollowers, totalNumOfFollowed);
+        }
+
+        public async Task<bool> Followed(Guid id, Guid followedId, CancellationToken ct)
+        {
+            var res = await context.Follows.FirstOrDefaultAsync(f => f.FollowerId == id && f.Followed.Id == followedId);
+            return res != null;
+        }
+
     }
  }

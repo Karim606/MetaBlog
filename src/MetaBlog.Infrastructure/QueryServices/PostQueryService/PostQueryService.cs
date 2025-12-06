@@ -43,7 +43,7 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
         {
             var query = context.Posts.AsQueryable();
 
-            query.ApplySearch(searchTerm)
+           query.ApplySearch(searchTerm)
                 .ApplyFilterWithAuthorId(authorId)
                 .ApplyFilterWithCreatedAfter(createdAfter)
                 .ApplySorting(sortBy,sortDescending);

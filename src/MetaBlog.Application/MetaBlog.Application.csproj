@@ -20,6 +20,7 @@
 	  <Folder Include="Features\Admin\Commands\DeletePost\" />
 	  <Folder Include="Features\Admin\Commands\DeleteComment\" />
 	  <Folder Include="Features\Admin\Queries\" />
+	  <Folder Include="Features\Users\commands\" />
 	</ItemGroup>
 
 </Project>

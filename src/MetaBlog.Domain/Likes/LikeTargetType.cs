@@ -8,7 +8,7 @@ namespace MetaBlog.Domain.Likes
 {
     public enum LikeTargetType
     {
-        Post=1,
-        Comment
+        Posts=1,
+        Comments
     }
 }

@@ -19,7 +19,7 @@ namespace MetaBlog.Infrastructure.Identity
     {
         public string GenerateToken(string Name, string Email, Guid Id, List<string> Roles)
         {
-            var claims = new List<System.Security.Claims.Claim>
+            var claims = new List<Claim>
             {
                 new Claim("id",Id.ToString() ),
                 new Claim("email",Email),

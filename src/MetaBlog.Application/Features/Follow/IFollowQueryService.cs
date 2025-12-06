@@ -12,5 +12,9 @@ namespace MetaBlog.Application.Features.Follow
     {
         Task<PaginatedList<Followers_FollowedDto>> GetFollowsAsync(Guid userId, FollowQueryType queryType, int pageNumber, int pageSize, string? searchTerm,
         DateTime? createdAfter, bool? sortDescending, CancellationToken ct);
+
+        Task<(int totalFollowers, int totalFollowed)> GetTotalNumberAsync(Guid id, CancellationToken ct);
+
+        Task<bool> Followed(Guid id,Guid followedId, CancellationToken ct);
     }
 }

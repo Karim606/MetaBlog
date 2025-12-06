@@ -19,7 +19,7 @@ namespace MetaBlog.Application.Features.Follow.Commands.UnFollowUser
         public async Task<Result<Success>> Handle(UnFollowCommand request, CancellationToken cancellationToken)
         {
             if (request.followedId == Guid.Empty) { return Error.Validation(description: "followed id cant be empty"); }
-            var user = userRepository.Equals(await userRepository.GetByIdAsync(request.followedId));
+            var user = await userRepository.GetByIdAsync(request.followedId);
 
             if (user == null)
             {
@@ -28,6 +28,8 @@ namespace MetaBlog.Application.Features.Follow.Commands.UnFollowUser
             }
 
             var followerId = Guid.Parse(currentUserService.GetId());
+
+            if (followerId == request.followedId) { return Error.Conflict(description: "user cant unfollow himself"); }
 
             var follow = await followRepository.GetFollowAsync(followerId, request.followedId);
             if (follow == null)

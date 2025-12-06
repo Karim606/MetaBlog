@@ -173,8 +173,8 @@ namespace MetaBlog.Infrastructure.Data
             appDbContext.Posts.AddRange(post1, post2);
 
             // 2. Likes
-            var like1 = Like.Create(Guid.NewGuid(), post1.Id,LikeTargetType.Post, users[1].Id);
-            var like2 = Like.Create(Guid.NewGuid(), post2.Id,LikeTargetType.Post, users[0].Id);
+            var like1 = Like.Create(Guid.NewGuid(), post1.Id,LikeTargetType.Posts, users[1].Id);
+            var like2 = Like.Create(Guid.NewGuid(), post2.Id,LikeTargetType.Posts, users[0].Id);
             appDbContext.Likes.AddRange(like1, like2);
 
             // 3. Favorites

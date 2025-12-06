@@ -19,7 +19,7 @@ namespace MetaBlog.Application.Features.Follow.Commands.FollowUser
         {
             if (request.Id == Guid.Empty) { return Error.Validation(description: "followed id cant be empty"); }
            
-            var user = userRepository.Equals(await userRepository.GetByIdAsync(request.Id));
+            var user = await userRepository.GetByIdAsync(request.Id);
             if (user == null)
             {
                 logger.LogWarning("User with Id {FollowedId} does not exist", request.Id);
@@ -27,6 +27,8 @@ namespace MetaBlog.Application.Features.Follow.Commands.FollowUser
             }
 
             var followerId = Guid.Parse(currentUserService.GetId());
+
+            if (followerId == request.Id) { return Error.Conflict(description: "user cant follow himself"); }
 
             var followRequest = await followRepository.GetFollowAsync(followerId, request.Id);
             if(followRequest != null)

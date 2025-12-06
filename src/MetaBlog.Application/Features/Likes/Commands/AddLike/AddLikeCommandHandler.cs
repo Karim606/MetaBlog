@@ -24,7 +24,7 @@ namespace MetaBlog.Application.Features.Likes.Commands.AddLike
             }
 
             ILikable entity;
-            if (request.TargetType == LikeTargetType.Post) { entity = await postRepository.GetPostByIDAsync(request.targetId,cancellationToken); }
+            if (request.TargetType == LikeTargetType.Posts) { entity = await postRepository.GetPostByIDAsync(request.targetId,cancellationToken); }
             else {entity = await commentRepository.GetCommentByIdAsync(request.targetId,cancellationToken); }
 
             if (entity == null) { return Error.NotFound(); }
