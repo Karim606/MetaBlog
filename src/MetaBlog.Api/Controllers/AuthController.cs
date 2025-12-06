@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using MetaBlog.Api.OpenApi;
+using MetaBlog.Api.OpenApi.Transformers;
 using MetaBlog.Application.Features.Identity.Dto.Requests;
 using MetaBlog.Application.Features.Identity.Dto.Responses;
 using MetaBlog.Application.Features.Identity.Dtos.Requests;
@@ -62,7 +62,7 @@ namespace MetaBlog.Api.Controllers
             SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenExpiry);
             
             return result.Match(
-                token => Ok(token.AccessToken),
+                value => Ok(new AccessToken(value.AccessToken)),
                 Problem
                 );
 
@@ -71,7 +71,8 @@ namespace MetaBlog.Api.Controllers
 
 
         [HttpPost("refresh")]
-        [ProducesResponseType(typeof(RefreshTokenResponseDto),StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AccessToken),StatusCodes.Status200OK)]
+        [ReturnsCookie("refreshToken",200,bodyType: typeof(AccessToken))]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [EndpointSummary("Refresh your old token.")]
@@ -84,9 +85,9 @@ namespace MetaBlog.Api.Controllers
                 return Unauthorized();
             var result = await _sender.Send(new RefreshTokenCommand(incomingValue));
             SetRefreshTokenCookie(result.Value.refreshToken, result.Value.expiresAt);
-
+            
             return result.Match(
-                Success => Ok(result.Value.accessToken),
+                value => Ok(new AccessToken(value.accessToken)),
                 Problem
                 );
 
@@ -119,7 +120,7 @@ namespace MetaBlog.Api.Controllers
         {
             Request.Cookies.TryGetValue("refreshToken", out var refreshToken);
             var command = new LogOutCommand(refreshToken);
-            SetRefreshTokenCookie("",DateTime.MinValue);
+            SetRefreshTokenCookie("",DateTime.UtcNow.AddDays(-1));
             var result = await _sender.Send(command);
             return result.Match(
                 Success => NoContent(),

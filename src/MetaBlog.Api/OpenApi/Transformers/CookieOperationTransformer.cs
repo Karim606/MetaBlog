@@ -4,7 +4,7 @@ using Newtonsoft.Json.Schema;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 
-namespace MetaBlog.Api.OpenApi
+namespace MetaBlog.Api.OpenApi.Transformers
 {
     [AttributeUsage(AttributeTargets.Method,AllowMultiple = true)]
     public class ReturnsCookieAttribute : Attribute

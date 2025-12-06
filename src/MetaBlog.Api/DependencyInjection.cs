@@ -1,7 +1,6 @@
 ﻿using MetaBlog.Api.Common;
 using MetaBlog.Api.Common.RouteConstraints;
 using MetaBlog.Api.Infrastructure;
-using MetaBlog.Api.OpenApi;
 using MetaBlog.Api.OpenApi.Transformers;
 using MetaBlog.Application.Common.Interfaces;
 using MetaBlog.Infrastructure.Settings;
@@ -208,7 +207,7 @@ namespace MetaBlog.Api
 
             app.UseHttpsRedirection();
 
-            app.UseSerilogRequestLogging();
+            //app.UseSerilogRequestLogging();
 
             app.UseRateLimiter();
 

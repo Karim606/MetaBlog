@@ -20,6 +20,7 @@ namespace MetaBlog.Application
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
                 cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
                 cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
+                cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
                 cfg.AddOpenBehavior(typeof(UnhandledExceptionBehavior<,>));
                 cfg.AddOpenBehavior(typeof(CachingBehavior<,>));
             });

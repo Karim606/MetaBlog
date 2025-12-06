@@ -22,32 +22,34 @@ namespace MetaBlog.Application.Features.Identity.RefreshToken
         public async Task<Result<RefreshTokenResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
            var hashedToken =  jwtService.HashToken(request.unHashedRefreshToken);
-           var storedToken = await refreshTokenRepository.GetByHashTokenAsync(hashedToken);
-            if (storedToken == null||storedToken.expiresAt<DateTime.UtcNow)
+           var oldToken = await refreshTokenRepository.GetByHashTokenAsync(hashedToken);
+            if (oldToken == null||oldToken.expiresAt<DateTime.UtcNow)
             {
               
-                logger.LogWarning("refresh Token for user {UserId} is invalid TokenID:{tokenId} is invalid",currentUserService.GetId(),storedToken?.Id);
+                logger.LogWarning("refresh Token is invalid TokenID:{tokenId} is invalid",oldToken?.Id);
                 return Error.Unauthorized("");
                 
             }
             var (newRefreshToken,expiresAt) = jwtService.GenerateRefreshToken();
-            var hashedRefreshToken = jwtService.HashToken(newRefreshToken);
+            var newHashedToken = jwtService.HashToken(newRefreshToken);
 
+            var userId = oldToken.userId;
 
-            var storedRefreshToken = MetaBlog.Domain.RefreshTokens.RefreshToken.Create(Guid.NewGuid(),storedToken.userId
-                                        ,hashedRefreshToken,expiresAt,currentRequestContext.IpAddress,currentRequestContext.DeviceInfo);
-
-            storedToken.Revoke(storedRefreshToken.Id, RevokeReasons.Rotated);
+            var newToken = MetaBlog.Domain.RefreshTokens.RefreshToken.Create(Guid.NewGuid(),userId
+                                        ,newHashedToken,expiresAt,currentRequestContext.IpAddress,currentRequestContext.DeviceInfo);
+            
+            await refreshTokenRepository.AddTokenAsync(newToken);
+            oldToken.Revoke(newToken.Id, RevokeReasons.Rotated);
 
             await refreshTokenRepository.SaveChangesAsync();
-            await refreshTokenRepository.AddTokenAsync(storedRefreshToken);
+           
 
-            var user = await domainUserRepository.GetByIdAsync(storedToken.userId);
+            var user = await domainUserRepository.GetByIdAsync(userId);
 
-            var resultOfRoles = await identityService.GetUserRolesAsync(storedToken.Id);
-            var resultOfEmail = await identityService.GetUserEmailAsync(storedToken.Id);
+            var resultOfRoles = await identityService.GetUserRolesAsync(userId);
+            var resultOfEmail = await identityService.GetUserEmailAsync(userId);
 
-            var accessToken = jwtService.GenerateToken(user.firstName + " " + user.lastName,resultOfEmail.Value,storedToken.Id,resultOfRoles.Value);
+            var accessToken = jwtService.GenerateToken(user.firstName + " " + user.lastName,resultOfEmail.Value,userId,resultOfRoles.Value);
 
            return new RefreshTokenResponseDto
             {

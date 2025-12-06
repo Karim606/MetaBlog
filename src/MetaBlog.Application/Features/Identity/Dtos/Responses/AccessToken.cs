@@ -9,5 +9,6 @@ namespace MetaBlog.Application.Features.Identity.Dtos.Responses
     public class AccessToken
     {
         public string accessToken { get; set; } = string.Empty;
+        public AccessToken(string token) { accessToken = token; }
     }
 }

@@ -33,7 +33,7 @@ namespace MetaBlog.Application.Features.Identity.Logout
                 logger.LogInformation("Refresh token already revoked.");
                 return Error.Unauthorized();
             }
-            storedToken.Revoke(Guid.Empty, RevokeReasons.LoggedOut);
+            storedToken.Revoke(null, RevokeReasons.LoggedOut);
             await refreshTokenRepository.SaveChangesAsync();
 
             logger.LogInformation("User {UserId} successfully logged out.", storedToken.userId);
