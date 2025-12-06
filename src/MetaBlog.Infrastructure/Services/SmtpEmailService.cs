@@ -3,13 +3,15 @@ using MetaBlog.Infrastructure.Common.Interfaces;
 using MetaBlog.Infrastructure.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
+using MailKit.Net;
 using System.Text;
 using System.Threading.Tasks;
+using MailKit.Net.Smtp;
 
 namespace MetaBlog.Infrastructure.Services
 {
@@ -23,28 +25,24 @@ namespace MetaBlog.Infrastructure.Services
         private readonly ILogger<SmtpEmailService> _logger; 
         public async Task<Result<Success>> SendAsync(string toEmail,string Subject,string Message)
         {
-            using var client = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)
-            {
-                Credentials = new NetworkCredential(_emailSettings.SmtpUser, _emailSettings.SmtpPass),
-                EnableSsl = true
-            };
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(_emailSettings.FromEmail));
+            email.To.Add(MailboxAddress.Parse(toEmail));
+            email.Subject = Subject;
+            email.Body = new TextPart("plain") { Text = Message };
 
-            var mailMessage = new MailMessage
-            {
-                From = new MailAddress(_emailSettings.FromEmail, "MetaBlog Support"),
-                Subject = Subject,
-                Body = Message,
-                IsBodyHtml = false
-            };
-
-            mailMessage.To.Add(toEmail);
             try
             {
-
-                await client.SendMailAsync(mailMessage);
+                using var smtp = new SmtpClient();
+                
+                await smtp.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync(_emailSettings.SmtpUser, _emailSettings.SmtpPass);
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
             }
-            catch (Exception ex) {
-                _logger.LogError(ex,"smtp server failure in sending mail to {email}.", toEmail);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SMTP failure sending mail to {email}.", toEmail);
                 return Error.Failure();
             }
 

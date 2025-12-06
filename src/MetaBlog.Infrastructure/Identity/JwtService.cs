@@ -10,13 +10,20 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using MetaBlog.Application.Common.Interfaces;
+using Microsoft.Extensions.Options;
+using MetaBlog.Infrastructure.Settings;
 
 namespace MetaBlog.Infrastructure.Identity
 {
     
 
-    public class JwtService(IConfiguration Configuration) : IJwtService
+    public class JwtService : IJwtService
     {
+        private readonly JwtSettings _jwtSettings;
+        public JwtService(IOptions<JwtSettings> jwtSettings)
+        {
+            _jwtSettings = jwtSettings.Value;
+        }
         public string GenerateToken(string Name, string Email, Guid Id, List<string> Roles)
         {
             var claims = new List<Claim>
@@ -29,13 +36,13 @@ namespace MetaBlog.Infrastructure.Identity
             {
                 claims.Add(new Claim("role", role));
             }
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSettings:SecretKey"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
-                issuer: Configuration["JwtSettings:Issuer"],
-                audience: Configuration["JwtSettings:Audience"],
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(Convert.ToDouble(Configuration["JwtSettings:DurationInMinutes"])),
+                expires: DateTime.Now.AddMinutes(_jwtSettings.Duration),
                 signingCredentials: creds
                 );
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -48,7 +55,7 @@ namespace MetaBlog.Infrastructure.Identity
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
             var token = Convert.ToBase64String(randomBytes);
-            var expiresAt = DateTime.UtcNow.AddDays(double.Parse(Configuration["JwtSettings:RefreshTokenExpiryDays"]));
+            var expiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
 
            return (token,expiresAt);
         }

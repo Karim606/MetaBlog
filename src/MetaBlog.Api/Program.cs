@@ -24,7 +24,13 @@ namespace MetaBlog.Api
                             .AddApplication()
                            .AddInfrastructure(builder.Configuration);
 
-            builder.Host.UseSerilog((context, Loggerconfig) => Loggerconfig.ReadFrom.Configuration(context.Configuration));
+            builder.Host.UseSerilog((context, loggerConfig) => {
+                loggerConfig.ReadFrom.Configuration(context.Configuration);
+                var sourceToken = builder.Configuration["BETTERSTACK_SOURCE_TOKEN"];
+                var ingestHost = builder.Configuration["BETTERSTACK_INGEST_URL"];
+                loggerConfig.WriteTo.BetterStack(sourceToken: sourceToken, betterStackEndpoint: ingestHost);
+
+            });
             var app = builder.Build();
 
         

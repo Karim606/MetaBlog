@@ -15,7 +15,7 @@ namespace MetaBlog.Application.Common.Behaviors
         where TResponse : IResult
     {
         private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
-        private LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+        public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
         {
             _logger = logger;
         }

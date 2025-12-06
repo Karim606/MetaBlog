@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MetaBlog.Infrastructure.Settings
 {
-    public class EmailSettings
+    public sealed class EmailSettings
     {
         public string FromEmail { get; set; } = string.Empty;
         public string SmtpServer { get; set; } = string.Empty;
