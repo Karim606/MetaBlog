@@ -21,9 +21,16 @@ namespace MetaBlog.Application.Features.Identity.RefreshToken
     {
         public async Task<Result<RefreshTokenResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-           var hashedToken =  jwtService.HashToken(request.unHashedRefreshToken);
-           var oldToken = await refreshTokenRepository.GetByHashTokenAsync(hashedToken);
-            if (oldToken == null||oldToken.expiresAt<DateTime.UtcNow)
+            if (request.unHashedRefreshToken == null)
+            {
+
+                logger.LogWarning("refresh Token  can't be null.");
+                return Error.Unauthorized("");
+
+            }
+            var hashedToken =  jwtService.HashToken(request.unHashedRefreshToken);
+            var oldToken = await refreshTokenRepository.GetByHashTokenAsync(hashedToken);
+            if (oldToken.expiresAt<DateTime.UtcNow||oldToken.revokedAt!=null)
             {
               
                 logger.LogWarning("refresh Token is invalid TokenID:{tokenId} is invalid",oldToken?.Id);
@@ -51,12 +58,8 @@ namespace MetaBlog.Application.Features.Identity.RefreshToken
 
             var accessToken = jwtService.GenerateToken(user.firstName + " " + user.lastName,resultOfEmail.Value,userId,resultOfRoles.Value);
 
-           return new RefreshTokenResponseDto
-            {
-                accessToken = accessToken,
-                expiresAt = expiresAt,
-                refreshToken = newRefreshToken
-            };
+            return new RefreshTokenResponseDto(accessToken,newRefreshToken,expiresAt);
+
 
 
 

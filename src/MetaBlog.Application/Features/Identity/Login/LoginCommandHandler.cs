@@ -12,13 +12,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 using MetaBlog.Domain.RepositoriesInterfaces;
+using MetaBlog.Application.Features.Identity.Dtos.Responses;
 namespace MetaBlog.Application.Features.Identity.Login
 {
     public class LoginCommandHandler(IDomainUserRepository domainUserRepository,IIdentityService identityService,IJwtService jwtService,
-                  ICurrentRequestContext currentRequestContext,IRefreshTokenRepository refreshTokenRepository,ILogger<LoginCommandHandler>logger) : IRequestHandler<LoginCommand, Result<Token>>
+                  ICurrentRequestContext currentRequestContext,IRefreshTokenRepository refreshTokenRepository,ILogger<LoginCommandHandler>logger) : IRequestHandler<LoginCommand, Result<RefreshTokenResponseDto>>
 
     {
-        public async Task<Result<Token>> Handle(LoginCommand request, CancellationToken cancellationToken)
+        public async Task<Result<RefreshTokenResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var result = await identityService.LoginAsync(request.Email, request.Password);
             if (result.IsSuccess)
@@ -33,7 +34,7 @@ namespace MetaBlog.Application.Features.Identity.Login
                 
                 await refreshTokenRepository.AddTokenAsync(refreshToken);
                 
-                var token = new Token(accessToken,unHashedRefreshToken,expiresAt);
+                var token = new RefreshTokenResponseDto(accessToken,unHashedRefreshToken,expiresAt);
                 return token;
 
             }

@@ -8,9 +8,17 @@ namespace MetaBlog.Application.Features.Identity.Dtos.Responses
 {
     public class RefreshTokenResponseDto
     {
-       public string accessToken {  get; set; }
-        public  string refreshToken {  get; set; }
-        public DateTime expiresAt { get; set; }
+        public string AccessToken {  get; set; }
+        public  string RefreshToken {  get; set; }
+        public DateTime RefreshTokenExpiry { get; set; }
+
+        public RefreshTokenResponseDto(string accessToken, string refreshToken, DateTime refreshTokenExpiry)
+        {
+            AccessToken = accessToken;
+            RefreshToken = refreshToken;
+            RefreshTokenExpiry = refreshTokenExpiry;
+
+        }
 
     }
 }

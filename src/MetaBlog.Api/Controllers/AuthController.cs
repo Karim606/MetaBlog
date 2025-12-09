@@ -13,6 +13,7 @@ using MetaBlog.Application.Features.Identity.ResetPassword;
 using MetaBlog.Domain.RefreshTokens;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -46,6 +47,7 @@ namespace MetaBlog.Api.Controllers
         }
         [HttpPost("login")]
         [ProducesResponseType(typeof(AccessToken), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RefreshTokenResponseDto),StatusCodes.Status200OK)]
         [ReturnsCookie("refreshToken",200,bodyType: typeof(AccessToken))]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -55,14 +57,26 @@ namespace MetaBlog.Api.Controllers
         [MapToApiVersion("1.0")]
         public async Task<IActionResult> Login([FromBody] LoginUserDto request)
         {
-            // Dummy authentication logic for demonstration purposes
+
+            var origin = Request.Headers["Origin"].ToString();
+            bool isBrowser = false;
+            if (!string.IsNullOrEmpty(origin))
+            {
+                isBrowser = true;
+            }
+
             var command = new LoginCommand(request.Email,request.Password);
             var result = await _sender.Send(command);
-            if(result.IsSuccess)
+            if(result.IsSuccess&&isBrowser)
             SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenExpiry);
             
             return result.Match(
-                value => Ok(new AccessToken(value.AccessToken)),
+                value => {
+                    if (isBrowser)
+                        return Ok(new AccessToken(value.AccessToken));
+                    else
+                        return Ok(value);
+                    },
                 Problem
                 );
 
@@ -72,22 +86,41 @@ namespace MetaBlog.Api.Controllers
 
         [HttpPost("refresh")]
         [ProducesResponseType(typeof(AccessToken),StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RefreshTokenResponseDto), StatusCodes.Status200OK)]
         [ReturnsCookie("refreshToken",200,bodyType: typeof(AccessToken))]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [EndpointSummary("Refresh your old token.")]
-        [EndpointDescription("Refresh your old token with new one.")]
+        [EndpointDescription("When refreshing a token, the old token is replaced with a new one. For web users, the new refresh token " +
+            "is stored securely in an HttpOnly cookie, while mobile users receive it in the JSON response body to store in secure storage.")]
         [EndpointName("Refresh Token")]
         [MapToApiVersion("1.0")]
-        public async Task<IActionResult> Refresh()
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest? request)
         {
-            if (!Request.Cookies.TryGetValue("refreshToken", out var incomingValue))
-                return Unauthorized();
-            var result = await _sender.Send(new RefreshTokenCommand(incomingValue));
-            SetRefreshTokenCookie(result.Value.refreshToken, result.Value.expiresAt);
+            string refreshToken = request?.RefreshToken;
+            bool isBrowser = false;
+
+            var origin = Request.Headers["Origin"].ToString();
+            bool hasCookie = Request.Cookies.ContainsKey("refreshToken");
+
+            if (hasCookie || !string.IsNullOrEmpty(origin))
+            {
+                refreshToken = Request.Cookies["refreshToken"];
+                isBrowser = true;
+            }
+
+            var result = await _sender.Send(new RefreshTokenCommand(refreshToken));
+
+            if (result.IsSuccess && isBrowser)
+                SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenExpiry);
             
             return result.Match(
-                value => Ok(new AccessToken(value.accessToken)),
+                value => { 
+                    if(isBrowser)
+                     return  Ok(new AccessToken(value.AccessToken));
+                    else
+                     return Ok(value);
+                },
                 Problem
                 );
 
