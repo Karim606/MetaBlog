@@ -47,7 +47,6 @@ namespace MetaBlog.Infrastructure.QueryServices.CommentQueryService
             
               var items = await ( from c in query
                             join r in context.Comments on c.Id equals r.parentCommentId into replies
-                            join u in context.IdentityAppUsers on c.userId equals u.Id
                             select new CommentDto
                             {
                                 Id = c.Id,
@@ -58,7 +57,7 @@ namespace MetaBlog.Infrastructure.QueryServices.CommentQueryService
                                 createdAt = c.createdAt.LocalDateTime,
                                 repliesCount = replies.Count(),
                                 likesCount = c.likesCount,
-                                userName = u.FirstName + " " + u.LastName
+                                userName = c.User.firstName + " " + c.User.lastName
                             } ).AsNoTracking().ToListAsync();
 
 

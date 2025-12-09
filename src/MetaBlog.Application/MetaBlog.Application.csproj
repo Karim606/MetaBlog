@@ -10,6 +10,7 @@
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     <PackageReference Include="MediatR" Version="13.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.8.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
   </ItemGroup>
 
 	<ItemGroup>
@@ -20,6 +21,7 @@
 	  <Folder Include="Features\Admin\Commands\DeletePost\" />
 	  <Folder Include="Features\Admin\Commands\DeleteComment\" />
 	  <Folder Include="Features\Admin\Queries\" />
+	  <Folder Include="Features\Users\commands\" />
 	</ItemGroup>
 
 </Project>

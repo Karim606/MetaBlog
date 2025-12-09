@@ -3,6 +3,7 @@ using MetaBlog.Application.Features.Posts;
 using MetaBlog.Application.Features.Posts.Dtos.Response;
 using MetaBlog.Domain.Common;
 using MetaBlog.Domain.Posts;
+using MetaBlog.Domain.Users;
 using MetaBlog.Infrastructure.Data;
 using MetaBlog.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,48 +20,62 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
     {
         public async Task<PostDto> GetPostByIdAsync(Guid Id,CancellationToken ct)
         {
-             var post =await context.Posts.Include(p=> p.Comments).Include(p=>p.User).FirstOrDefaultAsync(p => p.Id == Id,ct);
-            IdentityAppUser user;
+             var post =await context.Posts.FirstOrDefaultAsync(p => p.Id == Id,ct);
             if (post != null)
-         user = await context.IdentityAppUsers.FirstOrDefaultAsync(u => u.Id == post.User.Id,ct);
-            
-            else return null;
-
                 return new PostDto
                 {
-                    Id=post.Id,
+                    Id = post.Id,
                     Title = post.Title,
                     Content = post.Content,
                     CommentsCount = post.Comments.Count(),
                     LikesCount = post.likesCount,
                     Slug = post.Slug,
-                    UserName = user.FirstName+user.LastName
+                    UserName = post.User.lastName +" "+ post.User.lastName
                 };
+
+            else return null;
+
+               
             
         }
 
-        public async Task<PaginatedList<PostDto>> GetPostsAsync(int pageNumber, int pageSize, string? searchTerm, Guid? authorId, DateTime? createdAfter, string? sortBy, bool? sortDescending, CancellationToken ct)
+        public async Task<PaginatedList<PostDto>> GetPostsAsync(int pageNumber, int pageSize, string? searchTerm, Guid? authorId, DateTime? createdAfter, string? sortBy, bool? sortDescending,Guid? currentUserId, CancellationToken ct)
         {
             var query = context.Posts.AsQueryable();
 
-            query.ApplySearch(searchTerm)
+           query.ApplySearch(searchTerm)
                 .ApplyFilterWithAuthorId(authorId)
                 .ApplyFilterWithCreatedAfter(createdAfter)
                 .ApplySorting(sortBy,sortDescending);
-           
-
-            var items = await context.Posts.Skip((pageNumber - 1) * pageSize).Take(pageSize)
-                .Join(context.IdentityAppUsers,p => p.User.Id, u => u.Id, (posts, users)=>new { posts,users }).Select(x => new PostDto{
-                        Content = x.posts.Content,
-                        Title = x.posts.Title,
-                        Slug = x.posts.Slug,
-                        CommentsCount = x.posts.Comments.Count(),
-                        LikesCount = x.posts.likesCount,
-
-                    UserName = x.users.FirstName+" "+x.users.LastName
-                        }).AsNoTracking().ToListAsync(ct);
 
             var totalCount = await context.Posts.CountAsync(ct);
+
+            var pagedPosts =  query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+
+            var items = from p in pagedPosts join
+                        l in context.Likes.Where(l => l.userId == currentUserId)
+                        on p.Id equals l.TargetId into likesGroup
+                        from likes in likesGroup.DefaultIfEmpty()
+                        join f in context.Favorites.Where(f => f.userId == currentUserId)
+                        on p.Id equals f.postId into favoritesGroup
+                        from favorites in favoritesGroup.DefaultIfEmpty()
+
+                        select new PostDto
+                        {
+                            Id = p.Id,
+                            Content = p.Content,
+                            Title = p.Title,
+                            Slug = p.Slug,
+                            CommentsCount = p.Comments.Count(),
+                            LikesCount = p.likesCount,
+                            IsLikedByCurrentUser = likes != null,
+                            IsFavoritedByCurrentUser = favorites != null,
+                            UserName = p.User.firstName + " " + p.User.lastName
+                        };
+            
+            var finalItems = await items.AsNoTracking().ToListAsync(ct);
+
+            
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
             return new PaginatedList<PostDto> {
@@ -68,7 +83,7 @@ namespace MetaBlog.Infrastructure.QueryServices.PostQueryService
             TotalPages = totalPages,
             PageNumber = pageNumber,
             PageSize = pageSize,
-            Items = items
+            Items = finalItems
             };
         }
 

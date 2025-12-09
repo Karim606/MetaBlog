@@ -34,6 +34,7 @@ namespace MetaBlog.Domain.Common.Results
         {
             if (errors == null || !errors.Any())
                 throw new ArgumentNullException(nameof(errors));
+            this._errors = errors;
         }
 
         private Result(T value)

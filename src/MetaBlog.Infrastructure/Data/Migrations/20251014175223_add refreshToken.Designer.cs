@@ -4,6 +4,7 @@ using MetaBlog.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MetaBlog.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251014175223_add refreshToken")]
+    partial class addrefreshToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,6 +170,53 @@ namespace MetaBlog.Infrastructure.Migrations
                     b.ToTable("Posts");
                 });
 
+            modelBuilder.Entity("MetaBlog.Domain.RefreshTokens.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdByIp")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deviceInfo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("expiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("replacedByTokenId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("revokeReason")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("revokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("userId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("replacedByTokenId")
+                        .IsUnique()
+                        .HasFilter("[replacedByTokenId] IS NOT NULL");
+
+                    b.HasIndex("userId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("MetaBlog.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -186,6 +236,10 @@ namespace MetaBlog.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("firstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("imageUrl")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -199,6 +253,10 @@ namespace MetaBlog.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("lastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("lastName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -225,14 +283,6 @@ namespace MetaBlog.Infrastructure.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -442,7 +492,7 @@ namespace MetaBlog.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("MetaBlog.Domain.Users.User", null)
-                        .WithMany("Favorite")
+                        .WithMany("Favorites")
                         .HasForeignKey("userId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -470,6 +520,22 @@ namespace MetaBlog.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MetaBlog.Domain.RefreshTokens.RefreshToken", b =>
+                {
+                    b.HasOne("MetaBlog.Domain.RefreshTokens.RefreshToken", "ReplacedBy")
+                        .WithOne()
+                        .HasForeignKey("MetaBlog.Domain.RefreshTokens.RefreshToken", "replacedByTokenId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MetaBlog.Domain.Users.User", null)
+                        .WithMany("refreshTokens")
+                        .HasForeignKey("userId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReplacedBy");
                 });
 
             modelBuilder.Entity("MetaBlog.Domain.Users.User", b =>
@@ -546,11 +612,13 @@ namespace MetaBlog.Infrastructure.Migrations
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("Favorite");
+                    b.Navigation("Favorites");
 
                     b.Navigation("Likes");
 
                     b.Navigation("Posts");
+
+                    b.Navigation("refreshTokens");
                 });
 #pragma warning restore 612, 618
         }

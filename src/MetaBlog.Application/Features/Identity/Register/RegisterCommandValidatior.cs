@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MetaBlog.Application.Features.Identity.Register
 {
-    public class RegisterCommandValidatior:AbstractValidator<RegisterUserDto>
+    public class RegisterCommandValidatior:AbstractValidator<RegisterCommand>
     {
         public RegisterCommandValidatior() {
             RuleFor(x => x.Email).NotEmpty().EmailAddress();

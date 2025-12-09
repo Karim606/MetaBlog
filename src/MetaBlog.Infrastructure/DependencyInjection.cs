@@ -1,27 +1,34 @@
-﻿using MetaBlog.Infrastructure.Data;
+﻿using MetaBlog.Application.Common.Interfaces;
+using MetaBlog.Application.Features.Comments;
+using MetaBlog.Application.Features.Favorites;
+using MetaBlog.Application.Features.Follow;
+using MetaBlog.Application.Features.Likes;
+using MetaBlog.Application.Features.Posts;
+using MetaBlog.Domain.RepositoriesInterfaces;
+using MetaBlog.Infrastructure.Common.Interfaces;
+using MetaBlog.Infrastructure.Data;
 using MetaBlog.Infrastructure.Identity;
+using MetaBlog.Infrastructure.QueryServices.CommentQueryService;
+using MetaBlog.Infrastructure.QueryServices.FavoriteQueryService;
+using MetaBlog.Infrastructure.QueryServices.FollowQueryService;
+using MetaBlog.Infrastructure.QueryServices.LikesQueryServer;
+using MetaBlog.Infrastructure.QueryServices.PostQueryService;
+using MetaBlog.Infrastructure.Repositories;
+using MetaBlog.Infrastructure.Services;
+using MetaBlog.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using MetaBlog.Application.Common.Interfaces;
-using Microsoft.IdentityModel.Tokens;
-using MetaBlog.Domain.RepositoriesInterfaces;
-using MetaBlog.Infrastructure.Repositories;
-using MetaBlog.Application.Features.Posts;
-using MetaBlog.Infrastructure.QueryServices.PostQueryService;
-using MetaBlog.Application.Features.Comments;
-using MetaBlog.Infrastructure.QueryServices.CommentQueryService;
-using MetaBlog.Application.Features.Favorites;
-using MetaBlog.Infrastructure.QueryServices.FavoriteQueryService;
 namespace MetaBlog.Extensions.DependencyInjection
 {
     public static class DependencyInjection
@@ -32,6 +39,8 @@ namespace MetaBlog.Extensions.DependencyInjection
 
             Services.AddDbContext(Configuration)
                    .AddJwtService(Configuration)
+                   .AddConfigurations(Configuration)
+                   .AddServices()
                    .AddRepositories()
                    .AddQueryServices()
                    .AddHybridCache();
@@ -54,9 +63,25 @@ namespace MetaBlog.Extensions.DependencyInjection
                 options.SignIn.RequireConfirmedPhoneNumber = false;
                 options.SignIn.RequireConfirmedAccount = false;
             }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+
+            Services.AddScoped<DbIntialiser>();
+
             return Services;
         }
-        
+
+        public static IServiceCollection AddConfigurations(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<EmailSettings>(
+            configuration.GetSection("EmailSettings"));
+
+            services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+
+
+
+
+            return services;
+        }
+
         private static IServiceCollection AddHybridCache(this IServiceCollection Services)
         {
             Services.AddHybridCache(options => options.DefaultEntryOptions = new HybridCacheEntryOptions
@@ -93,7 +118,13 @@ namespace MetaBlog.Extensions.DependencyInjection
             });
             #endregion
             Services.AddScoped<IJwtService, JwtService>();
-            Services.AddScoped<DbIntialiser>();
+            return Services;
+        }
+
+        private static IServiceCollection AddServices(this IServiceCollection Services)
+        {
+
+            Services.AddScoped<IEmailService, SmtpEmailService>();
             return Services;
         }
 
@@ -104,6 +135,8 @@ namespace MetaBlog.Extensions.DependencyInjection
             Services.AddScoped<ILikeRepository, LikeRepository>(); 
             Services.AddScoped<IFavoriteRepository,FavoriteRepository>();
             Services.AddScoped<IDomainUserRepository, DomainUserRepository>();
+            Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            Services.AddScoped<IFollowRepository, FollowRepository>();
             return Services;
         }
         public static IServiceCollection AddQueryServices(this IServiceCollection Services)
@@ -111,6 +144,8 @@ namespace MetaBlog.Extensions.DependencyInjection
             Services.AddScoped<IPostQueryService, PostQueryService>();
             Services.AddScoped<ICommentQueryService, CommentQueryService>();
             Services.AddScoped<IFavoriteQueryService, FavoriteQueryService>();
+            Services.AddScoped<IFollowQueryService, FollowQueryService>();
+            Services.AddScoped<ILikeQueryService, LikesQueryService>();
             return Services;
         }
     }

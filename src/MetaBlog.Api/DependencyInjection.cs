@@ -3,6 +3,7 @@ using MetaBlog.Api.Common.RouteConstraints;
 using MetaBlog.Api.Infrastructure;
 using MetaBlog.Api.OpenApi.Transformers;
 using MetaBlog.Application.Common.Interfaces;
+using MetaBlog.Infrastructure.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
@@ -21,7 +22,8 @@ namespace MetaBlog.Api
         {
             // Add services to the container.
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            services.AddEndpointsApiExplorer()
+            services
+                .AddEndpointsApiExplorer()
                 .AddRouteContraints()
                 .AddCustomProblemDetails()
                 .AddCustomApiVersioning()
@@ -30,11 +32,12 @@ namespace MetaBlog.Api
                 .AddControllersWithJsonConfiguration()
                 .AddIdentityInfrastructure()
                 .AddAppRateLimiting()
-                .AddOutputCaching();
-              
+                .AddOutputCaching()
+                .AddCors();
 
             return services;
         }
+
 
         public static IServiceCollection AddRouteContraints(this IServiceCollection services) {
             services.Configure<RouteOptions>(options =>
@@ -124,6 +127,8 @@ namespace MetaBlog.Api
                     options.AddDocumentTransformer<VersionInfoTransformer>();
                     options.AddDocumentTransformer<BearerSchemeSecurityTransformer>();
                     options.AddOperationTransformer<BearerSchemeSecurityTransformer>();
+                    options.AddOperationTransformer<CookieOperationTransformer>();
+
                     //options.AddSchemaTransformer<EnumSchemaTransformer>();
 
                 });
@@ -155,18 +160,42 @@ namespace MetaBlog.Api
         {
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<ICurrentRequestContext, CurrentRequestContext>();
+            return services;
+        }
+
+
+        public static IServiceCollection AddCors(this IServiceCollection services)
+        {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigins", policy =>
+                {
+                    policy.WithOrigins("https://localhost:4200")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+
+                    policy.WithOrigins("http://localhost:4200")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+                });
+            });
             return services;
         }
 
         public static IApplicationBuilder UseCoreMiddlewares(this IApplicationBuilder app,IConfiguration configuration)
         {
+            app.UseCors("AllowSpecificOrigins");
+
             app.UseExceptionHandler();
 
             app.UseStatusCodePages();
 
             app.UseHttpsRedirection();
 
-            app.UseSerilogRequestLogging();
+            //app.UseSerilogRequestLogging();
 
             app.UseRateLimiter();
 

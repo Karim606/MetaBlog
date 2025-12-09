@@ -1,6 +1,8 @@
 ﻿using MediatR;
+using MetaBlog.Application.Common.Models;
 using MetaBlog.Application.Features.Favorites.Commands.AddToFavorites;
 using MetaBlog.Application.Features.Favorites.Commands.RemoveFromFavorites;
+using MetaBlog.Application.Features.Favorites.Dtos.Response;
 using MetaBlog.Application.Features.Favorites.Queries.GetFavorites;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -50,7 +52,7 @@ namespace MetaBlog.Api.Controllers
         }
         [HttpGet]
         [Authorize(Roles = "User")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedList<FavoriteDto>),StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]

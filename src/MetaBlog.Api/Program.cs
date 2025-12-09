@@ -1,4 +1,5 @@
 
+using DotNetEnv;
 using MetaBlog.Application;
 using MetaBlog.Extensions.DependencyInjection;
 using MetaBlog.Infrastructure.Data;
@@ -13,18 +14,28 @@ namespace MetaBlog.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            Env.Load($"../../.env.{envName.ToLower()}");
+
+            builder.Configuration.AddEnvironmentVariables();
             // Add services to the container.
 
             builder.Services.AddPresentation(builder.Configuration)
                             .AddApplication()
                            .AddInfrastructure(builder.Configuration);
 
-            builder.Host.UseSerilog((context, Loggerconfig) => Loggerconfig.ReadFrom.Configuration(context.Configuration));
+            builder.Host.UseSerilog((context, loggerConfig) => {
+                loggerConfig.ReadFrom.Configuration(context.Configuration);
+                var sourceToken = builder.Configuration["BETTERSTACK_SOURCE_TOKEN"];
+                var ingestHost = builder.Configuration["BETTERSTACK_INGEST_URL"];
+                loggerConfig.WriteTo.BetterStack(sourceToken: sourceToken, betterStackEndpoint: ingestHost);
+
+            });
             var app = builder.Build();
 
         
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment()||app.Environment.IsProduction())
             {
                 app.MapOpenApi();
                 app.UseSwaggerUI(options => {
@@ -39,6 +50,7 @@ namespace MetaBlog.Api
             {
                 app.UseHsts();
             }
+     
             app.UseCoreMiddlewares(builder.Configuration);
             app.MapControllers();
             app.UseAntiforgery();

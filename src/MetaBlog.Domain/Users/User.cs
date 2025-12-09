@@ -1,8 +1,10 @@
 ﻿using MetaBlog.Domain.Comments;
 using MetaBlog.Domain.Common;
 using MetaBlog.Domain.Favorites;
+using MetaBlog.Domain.Follows;
 using MetaBlog.Domain.Likes;
 using MetaBlog.Domain.Posts;
+using MetaBlog.Domain.RefreshTokens;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -13,6 +15,8 @@ namespace MetaBlog.Domain.Users
 {
     public class User:AuditableEntity
     {
+        public string firstName { get; private set; } = string.Empty;
+        public string lastName { get; private set; } = string.Empty;
         public string? Bio { get; private set; }
         public DateOnly? DateOfBirth { get; set; }
         public string? imageUrl { get; private set; }
@@ -34,20 +38,36 @@ namespace MetaBlog.Domain.Users
 
         public IEnumerable<Favorite> Favorites => _Favorites.AsReadOnly();
 
+        
+        private readonly List<RefreshToken> _refreshTokens = new List<RefreshToken>();
+        public IEnumerable<RefreshToken>refreshTokens => _refreshTokens.AsReadOnly();
+
+
+        private readonly List<Follow> _Followers = new List<Follow>();
+        public IEnumerable<Follow> Followers => _Followers.AsReadOnly();
+
+
+        private readonly List<Follow> _Following = new List<Follow>();
+        public IEnumerable<Follow> Following => _Following.AsReadOnly();
+
         private User() { }
-        private User(Guid id,DateOnly dob):base(id)
+        private User(Guid id,DateOnly dob,string firstName,string lastName):base(id)
         {
             DateOfBirth = dob;
+            this.firstName = firstName;
+            this.lastName  = lastName;
         }
 
-        public static User Create(Guid id,DateOnly dob)
+        public static User Create(Guid id,DateOnly dob,string firstName,string lastName)
         {
-            return new User(id,dob);
+            return new User(id,dob,firstName,lastName);
         }
-        public void Update(string? bio,string? imageUrl)
+        public void Update(string? bio,string? imageUrl,string? firstName,string?lastName)
         {
-            Bio = bio;
-            this.imageUrl = imageUrl;
+            Bio = bio == null ? Bio : bio;
+            this.imageUrl = imageUrl == null ? this.imageUrl : imageUrl;
+            this.firstName = firstName == null ? this.firstName : firstName;
+            this.lastName = lastName == null ? this.lastName : lastName;
         }
         public void Activate()
         {

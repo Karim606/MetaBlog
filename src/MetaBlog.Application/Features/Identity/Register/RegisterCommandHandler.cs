@@ -16,18 +16,22 @@ namespace MetaBlog.Application.Features.Identity.Register
     {
         public async Task<Result<Created>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
-            var result = await identityService.RegisterUserAsync(request.firstName, request.lastName, request.Email, request.Password);
+            var result = await identityService.RegisterUserAsync(request.Email, request.Password);
             if (result.IsSuccess)
             {
                 logger.LogInformation("User {Email} registered successfully.", request.Email);
-                var user = User.Create(result.Value,request.Dob);
+                var user = User.Create(result.Value,request.Dob,request.firstName,request.lastName);
                 await domainUserRepository.AddUserAsync(user);
 
                 return Result.Created;
             }
             else { 
                 logger.LogWarning("Failed registration attempt for user {Email}. Reason: {Reason}", request.Email, result.TopError.ToLogObject());
-                return result.Errors!; }
+                if(result.TopError.Type==ErrorKind.Conflict)
+                return Error.Conflict(description: "We can’t complete registration with this email. If you already have an account, please sign in or reset your password.");
+
+                return Error.Failure();
+            }
         }
     }
 }

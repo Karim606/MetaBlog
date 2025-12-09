@@ -19,24 +19,24 @@ namespace MetaBlog.Api.Common
         }
         public string? GetEmail()
         {
-            return _user?.FindFirst(ClaimTypes.Email)?.Value;
+            return _user?.FindFirst("email")?.Value;
         }
 
         public string GetId()
         {
-            var id = _user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var id = _user?.FindFirst("id")?.Value;
             return id;
         }
 
         public List<string> GetRoles()
         {
-           var roles = _user?.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList() ?? new List<string>();
+           var roles = _user?.FindAll("role").Select(r => r.Value).ToList() ?? new List<string>();
             return roles;
         }
 
         public string GetUserName()
         {
-            return _user?.FindFirst(ClaimTypes.Name)?.Value ?? "Unknown";
+            return _user?.FindFirst("name")?.Value ?? "Unknown";
 
         }
     }

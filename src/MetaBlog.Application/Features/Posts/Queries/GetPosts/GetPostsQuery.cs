@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MetaBlog.Application.Features.Posts.Queries.GetPosts
 {
-    public record GetPostsQuery(int pageNumber,int pageSize,string? searchTerm,Guid? authorId,DateTime?createdAfter,string? sortBy,bool? sortDescending)
+    public record GetPostsQuery(int pageNumber=1,int pageSize=10,string? searchTerm=null,Guid? authorId=null,DateTime?createdAfter=null,string? sortBy = null,bool? sortDescending = null)
         :IRequest<Result<PaginatedList<PostDto>>>;
     
 }
