@@ -14,6 +14,8 @@ using Serilog;
 using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Http.Features;
+
 namespace MetaBlog.Api
 {
     public static class DependencyInjection
@@ -34,6 +36,14 @@ namespace MetaBlog.Api
                 .AddAppRateLimiting()
                 .AddOutputCaching()
                 .AddCors();
+
+            services.Configure<FormOptions>(options =>
+            {
+                options.ValueCountLimit = 5000;                    // allow up to 5000 fields
+                options.ValueLengthLimit = 10 * 1024 * 1024;       // 10 MB per text field
+                options.MultipartBodyLengthLimit = 200 * 1024 * 1024; // 200 MB max total
+            });
+
 
             return services;
         }

@@ -125,6 +125,7 @@ namespace MetaBlog.Extensions.DependencyInjection
         {
 
             Services.AddScoped<IEmailService, SmtpEmailService>();
+            Services.AddScoped<IImageService, CloudinaryImageService>();
             return Services;
         }
 

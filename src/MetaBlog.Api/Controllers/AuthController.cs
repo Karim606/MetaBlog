@@ -26,25 +26,44 @@ namespace MetaBlog.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpPost("register")]
-        [ProducesResponseType(typeof(OkResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AccessToken), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RefreshTokenResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [EndpointSummary("Registers New User.")]
-        [EndpointDescription("Register New user to System.")]
+        [EndpointDescription("Register New user to System. it returns refreshToken in response body for mobile while webBrowser gets it in cookie.")]
         [EndpointName("Register")]
         [MapToApiVersion("1.0")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserDto request)
+        public async Task<IActionResult> Register( [FromForm]RegisterUserDto request)
         {
-            var command = new RegisterCommand(request.firstName, request.lastName, request.Email, request.Password,request.confirmPassword,request.Dob);
+            var command = new RegisterCommand(request.firstName, request.lastName, request.Email, request.Password,request.Bio,request.ProfileImage,request.Dob);
             
             var result = await _sender.Send(command);
+
+            var origin = Request.Headers["Origin"].ToString();
+
+            bool isBrowser = false;
+            if (!string.IsNullOrEmpty(origin))
+            {
+                isBrowser = true;
+            }
+
+            if (result.IsSuccess && isBrowser)
+                SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenExpiry);
+
             return result.Match(
-                Created => Ok(),
+                value => {
+                    if (isBrowser)
+                        return Ok(new AccessToken(value.AccessToken));
+                    else
+                        return Ok(value);
+                },
                 Problem
-            );
+                );
 
         }
+
         [HttpPost("login")]
         [ProducesResponseType(typeof(AccessToken), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(RefreshTokenResponseDto),StatusCodes.Status200OK)]
@@ -52,7 +71,7 @@ namespace MetaBlog.Api.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [EndpointSummary("Login.")]
-        [EndpointDescription("Login into system if user is already registered.")]
+        [EndpointDescription("Login into system if user is already registered. it returns refreshToken in response body for mobile while webBrowser gets it in cookie.")]
         [EndpointName("Login")]
         [MapToApiVersion("1.0")]
         public async Task<IActionResult> Login([FromBody] LoginUserDto request)

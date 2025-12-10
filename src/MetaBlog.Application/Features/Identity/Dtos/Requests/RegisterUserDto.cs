@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,8 @@ namespace MetaBlog.Application.Features.Identity.Dto.Requests
         public string lastName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public string confirmPassword { get; set; }
+        public string? Bio { get; set; }
+        public IFormFile? ProfileImage{ get; set;}
         public DateOnly Dob { get; set; }
        
     }
