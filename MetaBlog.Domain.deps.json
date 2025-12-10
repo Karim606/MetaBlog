@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "MetaBlog.Domain/1.0.0": {
+        "runtime": {
+          "MetaBlog.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MetaBlog.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
