@@ -1,7 +1,7 @@
 # ⚙️ MetaBlog Backend (ASP.NET Core Clean Architecture) 🚧 In Progress
 
-MetaBlog is a **modern, scalable, and maintainable blogging platform backend** built with **ASP.NET Core Web API**, following **Clean Architecture** and **Domain-Driven Design (DDD)** principles.  
-It powers the MetaBlog full-stack app (with Angular frontend) and focuses on clean code, reusability, and performance.
+MetaBlog is a **Backend project for a blogging platform** Built using ASP.NET Core with a Clean Architecture approach. Some advanced patterns like CQRS and
+and MediatR are applied in selected modules for learning and scalability experimentation.
 
 ---
 
